@@ -1,10 +1,18 @@
 unit main;
 
+{$WARNINGS OFF}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, SynCommons, SynCrtSock, synautil, synacode, synaip, synamisc,
-  ssl_openssl, Forms, ssl_openssl_lib, blcksock, dialogs, variants,
+  Windows, Messages, SysUtils, Classes,
+  //SynCommons, SynCrtSock,
+  //synautil, synacode, synaip, synamisc,
+  //ssl_openssl,
+  Forms,
+  //ssl_openssl_lib,
+  //blcksock,
+  dialogs, variants,
   IdSMTP,
   IdSSLOpenSSL,
   IdMessage,
@@ -57,10 +65,12 @@ type
     cbSSLvfrFailIfNoPeer: TCheckBox;
     cbSSLvfrClientOnce: TCheckBox;
     procedure btnSendClick(Sender: TObject);
+    procedure btnAddFileClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
-     ListFile : TStringList;
+    ListFile : TStringList;
     function SendEmailUsingTLS12: Boolean;
-    function CreateData: TStringList;
     function sendWithSynapse: Boolean;
     function sendWithIndy: Boolean;
     function sendWithICS: Boolean;
@@ -79,6 +89,7 @@ type
     { Déclarations privées }
   public
     { Déclarations publiques }
+    function CreateData: TStringList;
   end;
 
 var
@@ -127,6 +138,17 @@ begin
            (not setFocusError(edObject, 'vous devez saisir un objet'));
 end;
 
+procedure TforMain.btnAddFileClick(Sender: TObject);
+begin
+  with TOpenDialog.Create(nil) do
+  try
+    if Execute then
+      ListFile.Add(FileName);
+  finally
+    Free;
+  end;
+end;
+
 procedure TforMain.btnSendClick(Sender: TObject);
 begin
   PageControl.TabIndex:= 0;
@@ -145,6 +167,16 @@ begin
   result.Add('Subject: ' + edtSubject.Text);
   result.Add('');
   result.Add(edObject.Lines.Text);
+end;
+
+procedure TforMain.FormCreate(Sender: TObject);
+begin
+  ListFile:= TStringList.Create;
+end;
+
+procedure TforMain.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(ListFile);
 end;
 
 procedure TforMain.OnStatus(Asender: TObject; const aStatus: TIdStatus; const aStatusText: string);
@@ -375,6 +407,7 @@ function TforMain.sendWithICS: Boolean;
 //  SMTP: TSMTPCli;
 //  Msg: TStringList;
 begin
+  result:= False;
 //  SMTP := TSMTPCli.Create(nil);
 //  try
 //    SMTP.Host:= 'smtp.example.com';
@@ -426,13 +459,20 @@ end;
 function TforMain.sendWithIndy: Boolean;
 var files: TArray<string>;
 begin
-  SendEmailWithTLS(edTarget.Text, strToInt(edPort.Text), edtFrom.Text, edtTo.Text, edUserName.Text, edPassword.Text, edtSubject.Text,
-  edObject.Lines.Text, files);
+  result:= False;
+  try
+    SendEmailWithTLS(edTarget.Text, strToInt(edPort.Text), edtFrom.Text, edtTo.Text, edUserName.Text, edPassword.Text, edtSubject.Text,
+    edObject.Lines.Text, files);
+    result:= True;
+  except
+    on e: Exception do
+      mmTraces.Lines.Add('erreur indy : ' + e.Message);
+  end;
 end;
 
 function TforMain.sendWithSynapse: Boolean;
 begin
-
+  result:= False;
 end;
 
 function TforMain.SendEmailUsingTLS12: Boolean;
@@ -441,7 +481,10 @@ begin
        2 : result:= sendWithICS;
        0 : result:= sendWithIndy;
        1 : result:= sendWithSynapse;
+  else result:= False;
   end;
+  if result then ShowMessage('Message transmi')
+            else ShowMessage('Message non transmi');
 end;
 
 

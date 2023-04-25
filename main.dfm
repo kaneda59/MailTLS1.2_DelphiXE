@@ -13,6 +13,8 @@ object forMain: TforMain
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object Panel1: TPanel
@@ -300,6 +302,7 @@ object forMain: TforMain
       Height = 25
       Caption = 'add file'
       TabOrder = 3
+      OnClick = btnAddFileClick
     end
   end
   object PageControl: TPageControl
@@ -324,10 +327,6 @@ object forMain: TforMain
     object tbsLogs: TTabSheet
       Caption = 'Traces'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 627
-      ExplicitHeight = 227
       object mmTraces: TMemo
         Left = 0
         Top = 0
@@ -336,10 +335,6 @@ object forMain: TforMain
         Align = alClient
         ReadOnly = True
         TabOrder = 0
-        ExplicitLeft = 32
-        ExplicitTop = 24
-        ExplicitWidth = 185
-        ExplicitHeight = 89
       end
     end
   end
